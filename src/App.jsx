@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import Header from './components/Header.jsx'
+import Header, { modalStyle } from './components/Header.jsx'
 import './App.css'
 import SignIn from './components/SignIn.jsx';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
@@ -9,25 +9,40 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
-import { ThumbUp } from '@mui/icons-material';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import { downloadFile } from './firebase.js';
+import ListItem from './components/ListItem.jsx';
+import { getFiles } from './firebase.js';
 
 const mockData = [
-    { title: "Plagiátorstvo", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }
+    { title: "Plagiátorstvo", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf", url: "hhttps://firebasestorage.googleapis.com/v0/b/hip-babic.appspot.com/o/SVT-1.pdf?alt=media&token=3d198b01-36ba-48fc-8824-f3e2b8c7f4c1ttps://firebasestorage.googleapis.com/v0/b/hip-babic.appspot.com/o/SVT-1.pdf?alt=media&token=3d198b01-36ba-48fc-8824-f3e2b8c7f4c1" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }, { title: "Vývoj umelé inteligencie", user: "JanAnonimus", likes: 12, filename: "plagiat.pdf" }
 ]
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [data, setData] = useState(mockData);
+    const [data, setData] = useState([]);
+    const [originaldata, setoriginalData] = useState([]);
     const [searchText, setSearchText] = useState("");
 
     useEffect(() => {
-        setData(mockData.filter(item => item.title.toLowerCase().includes(searchText.toLowerCase())));
+        getFiles().then(files => {
+            setData(files);
+            console.log(files);
+            setoriginalData(files);
+        })
+    }, [])
+
+    const refreshData = () => {
+        getFiles().then(files => {
+            setData(files);
+            setoriginalData(files);
+        })
+    }
+
+    useEffect(() => {
+        setData(originaldata.filter(item => item.title.toLowerCase().includes(searchText.toLowerCase())));
     }, [searchText])
 
     return (
         <>
-            <Header isLoggedIn={isLoggedIn} setLogin={setIsLoggedIn} />
+            <Header refreshData={refreshData} isLoggedIn={isLoggedIn} setLogin={setIsLoggedIn} />
             <div style={{ marginTop: "77px", padding: "40px 100px" }}>
                 {!isLoggedIn ? <SignIn setIsLoggedIn={setIsLoggedIn} /> :
                     <>
@@ -81,31 +96,7 @@ function App() {
                             <div style={{ width: "100%" }}>
                                 {data.length === 0 && <Typography variant="h5" style={{ color: "black" }}>No files found</Typography>}
                                 {data.map((item, index) => (
-                                    <div key={index} className='flex' style={{
-                                        gap: "20px", border: "1px solid black", padding: "20px",
-                                        justifyContent: "space-between"
-                                    }}>
-                                        <div className='flex' style={{ gap: "10px" }}>
-                                            <PictureAsPdfIcon fontSize={"large"} />
-                                            <div className='flex column' style={{ alignItems: "start" }}>
-                                                <Typography onClick={() => downloadFile("SVT-1.pdf")} variant="h5" className='hover underline' style={{ color: "black", fontWeight: "bold" }}>{item.title}</Typography>
-                                                <Typography variant="h7" style={{ color: "black" }}>{item.user}</Typography>
-                                            </div>
-                                        </div>
-                                        <Typography variant="h6" className='flex' style={{ color: "black", gap: "10px" }}>{item.likes}
-                                            <ThumbUp onClick={() => {
-                                                setData(data.map((el, i) => {
-                                                    if (i === index) {
-                                                        return {
-                                                            ...el,
-                                                            likes: el.likes + 1
-                                                        }
-                                                    }
-                                                    return el
-                                                }))
-                                            }} className='hover' />
-                                        </Typography>
-                                    </div>
+                                    <ListItem refreshData={refreshData} key={index} item={item} />
                                 ))}
                             </div>
                         </div>

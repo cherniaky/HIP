@@ -5,8 +5,9 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import CloseIcon from '@mui/icons-material/Close';
 import { uploadFile } from '../firebase';
+import { useDropzone } from 'react-dropzone';
 
-const style = {
+export const modalStyle = {
     position: 'absolute',
     top: '50%',
     left: '50%',
@@ -35,6 +36,7 @@ export default function Header(props) {
 
         uploadFile(file).then(() => {
             handleClose();
+            props.refreshData();
         });
     };
 
@@ -74,7 +76,7 @@ export default function Header(props) {
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
-                <Box sx={style}>
+                <Box sx={modalStyle}>
                     <Typography id="modal-modal-title" variant="h4" sx={{ fontWeight: "bold" }} >
                         Upload files
 
@@ -83,9 +85,34 @@ export default function Header(props) {
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                         Choose the type of upload you want to do for your files
                     </Typography>
-                    <input id='fileupload' type="file" onChange={handleFileChange} style={{ display: "flex" }} />
+                    <Basic handleFileChange={handleFileChange}/>
+                    {/* <input id='fileupload' type="file" onChange={handleFileChange} style={{ display: "flex" }} /> */}
                 </Box>
             </Modal>
         </>
+    );
+}
+
+function Basic(props) {
+    const { acceptedFiles, getRootProps, getInputProps } = useDropzone();
+
+    const files = acceptedFiles.map(file => (
+        <li key={file.path}>
+            {file.path} - {file.size} bytes
+        </li>
+    ));
+
+    return (
+        <section className="container">
+            <div {...getRootProps({ className: 'dropzone' })}>
+                <input {...getInputProps()} onChange={props.handleFileChange}/>
+                <p>Drag 'n' drop some files here, or click to select files</p>
+            </div>
+            {acceptedFiles.length > 0 && <aside>
+                <h4>Files</h4>
+                <ul>{files}</ul>
+            </aside>
+            }
+        </section>
     );
 }

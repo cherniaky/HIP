@@ -26,3 +26,11 @@
 .underline:hover{
     text-decoration: underline;
 }
+.dropzone{
+    border: 2px dashed black;
+    padding: 60px 30px;
+    margin: 20px 0;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+}
